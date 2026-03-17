@@ -1,10 +1,7 @@
-import Link from "next/link"
-
 const Page = async () => {
-
   return (
     <div>
-      <Link href={'/login'}>Login</Link>
+      <p>Sorry, something went wrong</p>
     </div>
   )
 }
