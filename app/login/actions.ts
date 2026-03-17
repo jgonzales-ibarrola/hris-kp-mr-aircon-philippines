@@ -1,48 +1,68 @@
-'use server'
+"use server";
 
-import { revalidatePath } from 'next/cache'
-import { redirect } from 'next/navigation'
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from "@/lib/supabase/server";
 
-export async function login(formData: FormData) {
-  const supabase = await createClient()
+export type ActionState = {
+  success: boolean;
+  message: string;
+} | null;
 
-  // type-casting here for convenience
-  // in practice, you should validate your inputs
-  const data = {
-    email: formData.get('email') as string,
-    password: formData.get('password') as string,
-  }
+export async function login(_prevState: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+	const supabase = await createClient();
 
-  const { error } = await supabase.auth.signInWithPassword(data)
+	// type-casting here for convenience
+	// in practice, you should validate your inputs
+	const data = {
+		email: formData.get("email") as string,
+		password: formData.get("password") as string,
+	};
 
-  if (error) {
-    console.log(error.message)
-    redirect('/error')
-  }
+	const { error } = await supabase.auth.signInWithPassword(data);
 
-  revalidatePath('/', 'layout')
-  redirect('/account')
+	if (error) {
+		console.log(error.message);
+		if (error.message === "Invalid login credentials") {
+			console.log("error:" + "Invalid login credentials");
+			return {
+				success: false,
+				message: "Invalid login credentials",
+			};
+		}
+	}
+
+	revalidatePath("/", "layout");
+	redirect("/account");
 }
 
-export async function signup(formData: FormData) {
-  const supabase = await createClient()
+export async function signup(_prevState: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+	const supabase = await createClient();
 
-  // type-casting here for convenience
-  // in practice, you should validate your inputs
-  const data = {
-    email: formData.get('email') as string,
-    password: formData.get('password') as string,
-  }
+	// type-casting here for convenience
+	// in practice, you should validate your inputs
+	const data = {
+		email: formData.get("email") as string,
+		password: formData.get("password") as string,
+	};
 
-  const { error } = await supabase.auth.signUp(data)
+	const { error } = await supabase.auth.signUp(data);
 
-  if (error) {
-    console.log(error.message)
-    redirect('/error')
-  }
+	if (error) {
+		if (error.message === "User already registered") {
+			console.log("error:" + "User already registered");
+			return {
+				success: false,
+				message: "User already registered",
+			};
+		}
+	}
 
-  revalidatePath('/', 'layout')
-  redirect('/account')
+	revalidatePath("/", "layout");
+	redirect("/account");
 }
