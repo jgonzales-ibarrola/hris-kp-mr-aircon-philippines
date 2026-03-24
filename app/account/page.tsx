@@ -6,6 +6,7 @@ const Page = async () => {
 	const {
 		data: { user },
 	} = await supabase.auth.getUser();
+	
 	return <AccountForm user={user} />;
 };
 
