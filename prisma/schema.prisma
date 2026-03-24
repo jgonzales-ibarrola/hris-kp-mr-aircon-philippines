@@ -14,10 +14,53 @@ datasource db {
 
 model User {
   id String @id @default(cuid())
-  firstName String
-  lastName String
+  role Role @default(GUEST)
   email String? @unique
+  firstName String
+  middleName String?
+  lastName String
+  suffixName String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+}
+
+model Profile {
+  id String @id @default(cuid())
+  employeeNumber String @unique
+  userStatus UserStatus @default(ACTIVE)
+  department Department
+  position Position
+}
+
+enum Department {
+  TECHNICAL
+  SALES_N_MARKETING
+  ADMIN_OR_OPERATIONS
+}
+
+enum Position {
+  ADMIN_ASSISTANT
+  PURCHASING_OFFICER
+  JUNIOR_SALES_ASSOCIATE
+}
+
+enum Role {
+  ADMIN
+  HR
+  USER
+  EMPLOYEE
+  GUEST
+}
+
+enum Location {
+  CEBU
+}
+
+enum UserStatus {
+  ACTIVE
+  RESIGNED
+  TERMINATED
+  AWOL
 }
