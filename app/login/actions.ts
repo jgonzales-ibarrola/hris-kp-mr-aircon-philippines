@@ -1,68 +1,44 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { signIn } from "@/auth"; // from your NextAuth export
+import { signInSchema } from "@/features/login/validations";
 import { redirect } from "next/navigation";
 
-import { createClient } from "@/lib/supabase/server";
+export type LoginState = {
+  error?: string;
+};
 
-export type ActionState = {
-  success: boolean;
-  message: string;
-} | null;
-
-export async function login(_prevState: ActionState,
+export async function loginAction(
+  prevState: LoginState,
   formData: FormData
-): Promise<ActionState> {
-	const supabase = await createClient();
+): Promise<LoginState> {
+  const parsed = signInSchema.safeParse({
+    email: formData.get("email"),
+    password: formData.get("password"),
+  });
 
-	// type-casting here for convenience
-	// in practice, you should validate your inputs
-	const data = {
-		email: formData.get("email") as string,
-		password: formData.get("password") as string,
-	};
+  if (!parsed.success) {
+    const issue = parsed.error.issues[0]
+    return {
+      error: issue?.message ?? 'Invalid input',
+    };
+  }
 
-	const { error } = await supabase.auth.signInWithPassword(data);
+  const { email, password } = parsed.data;
 
-	if (error) {
-		console.log(error.message);
-		if (error.message === "Invalid login credentials") {
-			console.log("error:" + "Invalid login credentials");
-			return {
-				success: false,
-				message: "Invalid login credentials",
-			};
-		}
-	}
+  try {
+    await signIn("credentials", {
+      email,
+      password,
+      redirect: false, // we handle redirect manually
+    });
 
-	revalidatePath("/", "layout");
-	redirect("/account");
-}
-
-export async function signup(_prevState: ActionState,
-  formData: FormData
-): Promise<ActionState> {
-	const supabase = await createClient();
-
-	// type-casting here for convenience
-	// in practice, you should validate your inputs
-	const data = {
-		email: formData.get("email") as string,
-		password: formData.get("password") as string,
-	};
-
-	const { error } = await supabase.auth.signUp(data);
-
-	if (error) {
-		if (error.message === "User already registered") {
-			console.log("error:" + "User already registered");
-			return {
-				success: false,
-				message: "User already registered",
-			};
-		}
-	}
-
-	revalidatePath("/", "layout");
-	redirect("/account");
+    // ✅ success redirect
+    redirect("/dashboard");
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (_) {
+    return {
+      error: "Invalid credentials",
+    };
+  }
 }

@@ -1,16 +1,11 @@
-import { createClient } from "@/lib/supabase/server";
-import LoginContent from "./_components/LoginContent";
-import { redirect } from "next/navigation";
+import { LoginForm } from "./_components/LoginForm";
 
-export default async function LoginPage() {
-	const supabase = await createClient();
-	const { data } = await supabase.auth.getSession()
-	
-	if (data.session?.user) {
-		redirect('/')
-	}
+const Page = () => {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-muted px-4">
+      <LoginForm />
+    </div>
+  );
+};
 
-	return (
-		<LoginContent />
-	)
-}
+export default Page;
